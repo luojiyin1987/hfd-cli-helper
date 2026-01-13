@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HFD 命令生成器</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #e4e4e7;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        h1 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #71717a;
+            font-size: 0.9rem;
+        }
+
+        .card {
+            background: rgba(39, 39, 42, 0.8);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #f4f4f5;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title .icon {
+            font-size: 1.2rem;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group:last-child {
+            margin-bottom: 0;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            color: #a1a1aa;
+            font-size: 0.9rem;
+        }
+
+        .required::after {
+            content: ' *';
+            color: #ef4444;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #3f3f46;
+            background: #27272a;
+            color: #e4e4e7;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+
+        input[type="text"]::placeholder {
+            color: #52525b;
+        }
+
+        .row {
+            display: flex;
+            gap: 16px;
+        }
+
+        .row .form-group {
+            flex: 1;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #60a5fa;
+            cursor: pointer;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            color: #e4e4e7;
+        }
+
+        .tags-input {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 8px;
+            border: 1px solid #3f3f46;
+            border-radius: 8px;
+            background: #27272a;
+            min-height: 42px;
+        }
+
+        .tags-input:focus-within {
+            border-color: #60a5fa;
+        }
+
+        .tag {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: #3f3f46;
+            border-radius: 6px;
+            font-size: 0.85rem;
+        }
+
+        .tag-remove {
+            cursor: pointer;
+            color: #a1a1aa;
+            font-size: 1rem;
+            line-height: 1;
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .tag-remove:hover,
+        .tag-remove:focus-visible {
+            color: #ef4444;
+        }
+
+        .tags-input input {
+            flex: 1;
+            min-width: 100px;
+            border: none;
+            background: transparent;
+            color: #e4e4e7;
+            font-size: 0.9rem;
+        }
+
+        .tags-input input:focus {
+            outline: none;
+        }
+
+        .range-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        input[type="range"] {
+            flex: 1;
+            accent-color: #60a5fa;
+        }
+
+        .range-value {
+            min-width: 30px;
+            text-align: center;
+            color: #60a5fa;
+            font-weight: 600;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 16px;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .radio-option input[type="radio"] {
+            accent-color: #60a5fa;
+            cursor: pointer;
+        }
+
+        .radio-option label {
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .output-card {
+            background: linear-gradient(135deg, rgba(39, 39, 42, 0.9), rgba(30, 30, 40, 0.9));
+            border: 1px solid rgba(96, 165, 250, 0.3);
+        }
+
+        .output-box {
+            background: #18181b;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+            font-size: 0.9rem;
+            color: #4ade80;
+            word-break: break-all;
+            line-height: 1.6;
+            position: relative;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 6px 12px;
+            background: #3f3f46;
+            border: none;
+            border-radius: 6px;
+            color: #e4e4e7;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: #52525b;
+        }
+
+        .copy-btn.copied {
+            background: #22c55e;
+            color: #fff;
+        }
+
+        .env-note {
+            background: rgba(251, 191, 36, 0.1);
+            border: 1px solid rgba(251, 191, 36, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+            font-size: 0.85rem;
+            color: #fbbf24;
+        }
+
+        .env-note code {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        .help-text {
+            font-size: 0.75rem;
+            color: #71717a;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 600px) {
+            .row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .radio-group {
+                flex-direction: column;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>HFD 命令生成器</h1>
+            <p class="subtitle">为 Hugging Face 模型/数据集下载生成命令</p>
+        </header>
+
+        <!-- 基本设置 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">📦</span>
+                <span>基本设置</span>
+            </div>
+            <div class="form-group">
+                <label class="required">仓库 ID (REPO_ID)</label>
+                <input type="text" id="repoId" placeholder="例如: gpt2 或 meta-llama/Llama-2-7b">
+                <div class="help-text">格式: org_name/repo_name 或 legacy 格式 (如 gpt2)</div>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>本地目录 (可选)</label>
+                    <input type="text" id="localDir" placeholder="默认: 仓库名">
+                </div>
+                <div class="form-group">
+                    <label>版本 (Revision)</label>
+                    <input type="text" id="revision" placeholder="默认: main" value="main">
+                </div>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="isDataset">
+                <label for="isDataset">下载数据集 (--dataset)</label>
+            </div>
+        </div>
+
+        <!-- 文件过滤 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🔍</span>
+                <span>文件过滤 (可选)</span>
+            </div>
+            <div class="form-group">
+                <label>包含文件 (--include)</label>
+                <div class="tags-input" id="includeTags">
+                    <input type="text" id="includeInput" placeholder="输入模式后按回车，如 vae/*">
+                </div>
+                <div class="help-text">支持通配符，如 *.safetensors 或 vae/*</div>
+            </div>
+            <div class="form-group">
+                <label>排除文件 (--exclude)</label>
+                <div class="tags-input" id="excludeTags">
+                    <input type="text" id="excludeInput" placeholder="输入模式后按回车，如 *.md">
+                </div>
+            </div>
+        </div>
+
+        <!-- 认证设置 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">🔐</span>
+                <span>认证设置 (Gated Repo 需要)</span>
+            </div>
+            <div class="row">
+                <div class="form-group">
+                    <label>HF 用户名</label>
+                    <input type="text" id="hfUsername" placeholder="your_username">
+                </div>
+                <div class="form-group">
+                    <label>HF Token</label>
+                    <input type="text" id="hfToken" placeholder="hf_...">
+                </div>
+            </div>
+            <div class="help-text">获取 Token: <a href="https://huggingface.co/settings/tokens" target="_blank" style="color: #60a5fa;">huggingface.co/settings/tokens</a></div>
+        </div>
+
+        <!-- 下载设置 -->
+        <div class="card">
+            <div class="card-title">
+                <span class="icon">⚙️</span>
+                <span>下载设置</span>
+            </div>
+            <div class="form-group">
+                <label>下载工具</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="toolAria2c" name="tool" value="aria2c" checked>
+                        <label for="toolAria2c">aria2c (默认，推荐)</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="toolWget" name="tool" value="wget">
+                        <label for="toolWget">wget</label>
+                    </div>
+                </div>
+            </div>
+            <div id="aria2cSettings">
+                <div class="form-group">
+                    <label>线程数 (-x)</label>
+                    <div class="range-wrapper">
+                        <input type="range" id="threads" min="1" max="10" value="4">
+                        <span class="range-value" id="threadsValue">4</span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>并发下载数 (-j)</label>
+                    <div class="range-wrapper">
+                        <input type="range" id="concurrent" min="1" max="10" value="5">
+                        <span class="range-value" id="concurrentValue">5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 输出 -->
+        <div class="card output-card">
+            <div class="card-title">
+                <span class="icon">📋</span>
+                <span>生成的命令</span>
+            </div>
+            <div class="output-box" id="output">
+                <button class="copy-btn" id="copyBtn">复制</button>
+                <span id="command">请填写仓库 ID 以生成命令...</span>
+            </div>
+            <div class="env-note">
+                <strong>需要安装 aria2c</strong>
+                <strong>使用前请先设置环境变量：</strong><br>
+                <code>export HF_ENDPOINT=https://hf-mirror.com</code><br>
+                或者直接在命令前加：<code>HF_ENDPOINT=https://hf-mirror.com ./hfd.sh ...</code>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 状态管理
+        const state = {
+            repoId: '',
+            localDir: '',
+            revision: 'main',
+            isDataset: false,
+            includePatterns: [],
+            excludePatterns: [],
+            hfUsername: '',
+            hfToken: '',
+            tool: 'aria2c',
+            threads: 4,
+            concurrent: 5
+        };
+
+        // DOM 元素
+        const elements = {
+            repoId: document.getElementById('repoId'),
+            localDir: document.getElementById('localDir'),
+            revision: document.getElementById('revision'),
+            isDataset: document.getElementById('isDataset'),
+            includeInput: document.getElementById('includeInput'),
+            includeTags: document.getElementById('includeTags'),
+            excludeInput: document.getElementById('excludeInput'),
+            excludeTags: document.getElementById('excludeTags'),
+            hfUsername: document.getElementById('hfUsername'),
+            hfToken: document.getElementById('hfToken'),
+            toolAria2c: document.getElementById('toolAria2c'),
+            toolWget: document.getElementById('toolWget'),
+            aria2cSettings: document.getElementById('aria2cSettings'),
+            threads: document.getElementById('threads'),
+            threadsValue: document.getElementById('threadsValue'),
+            concurrent: document.getElementById('concurrent'),
+            concurrentValue: document.getElementById('concurrentValue'),
+            command: document.getElementById('command'),
+            copyBtn: document.getElementById('copyBtn'),
+            output: document.getElementById('output')
+        };
+
+        // 标签管理
+        function createTag(text, type) {
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+
+            const label = document.createElement('span');
+            label.textContent = text;
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'tag-remove';
+            removeBtn.setAttribute('aria-label', `Remove ${text}`);
+            removeBtn.textContent = '×';
+            removeBtn.addEventListener('click', () => {
+                removeTag(text, type);
+            });
+
+            tag.appendChild(label);
+            tag.appendChild(removeBtn);
+            return tag;
+        }
+
+        function renderTags(type) {
+            const container = type === 'include' ? elements.includeTags : elements.excludeTags;
+            const input = type === 'include' ? elements.includeInput : elements.excludeInput;
+            const patterns = type === 'include' ? state.includePatterns : state.excludePatterns;
+
+            // 清除现有标签（保留 input）
+            const existingTags = container.querySelectorAll('.tag');
+            existingTags.forEach(tag => tag.remove());
+
+            // 添加新标签
+            patterns.forEach(pattern => {
+                const tag = createTag(pattern, type);
+                container.insertBefore(tag, input);
+            });
+        }
+
+        function addTag(text, type) {
+            const patterns = type === 'include' ? state.includePatterns : state.excludePatterns;
+            if (text && !patterns.includes(text)) {
+                patterns.push(text);
+                renderTags(type);
+                generateCommand();
+            }
+        }
+
+        function removeTag(text, type) {
+            const patterns = type === 'include' ? state.includePatterns : state.excludePatterns;
+            const index = patterns.indexOf(text);
+            if (index > -1) {
+                patterns.splice(index, 1);
+                renderTags(type);
+                generateCommand();
+            }
+        }
+
+        function setupTagInput(input, type) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && input.value.trim()) {
+                    e.preventDefault();
+                    addTag(input.value.trim(), type);
+                    input.value = '';
+                }
+            });
+
+            input.addEventListener('blur', () => {
+                if (input.value.trim()) {
+                    addTag(input.value.trim(), type);
+                    input.value = '';
+                }
+            });
+        }
+
+        // 生成命令
+        function shellEscape(value) {
+            if (value === '') {
+                return "''";
+            }
+            return "'" + value.replace(/'/g, "'\"'\"'") + "'";
+        }
+
+        function generateCommand() {
+            let cmd = './hfd.sh';
+
+            if (!state.repoId) {
+                elements.command.textContent = '请填写仓库 ID 以生成命令...';
+                return;
+            }
+
+            // 添加 repo_id
+            cmd += ` ${shellEscape(state.repoId)}`;
+
+            // 添加 include
+            if (state.includePatterns.length > 0) {
+                cmd += ' --include ' + state.includePatterns.map(shellEscape).join(' ');
+            }
+
+            // 添加 exclude
+            if (state.excludePatterns.length > 0) {
+                cmd += ' --exclude ' + state.excludePatterns.map(shellEscape).join(' ');
+            }
+
+            // 添加认证
+            if (state.hfUsername) {
+                cmd += ` --hf_username ${shellEscape(state.hfUsername)}`;
+            }
+            if (state.hfToken) {
+                cmd += ` --hf_token ${shellEscape(state.hfToken)}`;
+            }
+
+            // 添加工具
+            if (state.tool !== 'aria2c') {
+                cmd += ` --tool ${state.tool}`;
+            }
+
+            // 添加 aria2c 参数
+            if (state.tool === 'aria2c') {
+                if (state.threads !== 4) {
+                    cmd += ` -x ${state.threads}`;
+                }
+                if (state.concurrent !== 5) {
+                    cmd += ` -j ${state.concurrent}`;
+                }
+            }
+
+            // 添加数据集标志
+            if (state.isDataset) {
+                cmd += ' --dataset';
+            }
+
+            // 添加本地目录
+            if (state.localDir) {
+                cmd += ` --local-dir ${shellEscape(state.localDir)}`;
+            }
+
+            // 添加 revision
+            if (state.revision && state.revision !== 'main') {
+                cmd += ` --revision ${shellEscape(state.revision)}`;
+            }
+
+            elements.command.textContent = cmd;
+        }
+
+        // 复制命令
+        elements.copyBtn.addEventListener('click', async () => {
+            const cmd = elements.command.textContent;
+            if (cmd.includes('请填写')) return;
+
+            try {
+                await navigator.clipboard.writeText(cmd);
+                elements.copyBtn.textContent = '已复制!';
+                elements.copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    elements.copyBtn.textContent = '复制';
+                    elements.copyBtn.classList.remove('copied');
+                }, 2000);
+            } catch (err) {
+                // 降级方案
+                const textarea = document.createElement('textarea');
+                textarea.value = cmd;
+                document.body.appendChild(textarea);
+                textarea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textarea);
+                elements.copyBtn.textContent = '已复制!';
+                setTimeout(() => {
+                    elements.copyBtn.textContent = '复制';
+                }, 2000);
+            }
+        });
+
+        // 事件监听
+        elements.repoId.addEventListener('input', (e) => {
+            state.repoId = e.target.value.trim();
+            generateCommand();
+        });
+
+        elements.localDir.addEventListener('input', (e) => {
+            state.localDir = e.target.value.trim();
+            generateCommand();
+        });
+
+        elements.revision.addEventListener('input', (e) => {
+            state.revision = e.target.value.trim();
+            generateCommand();
+        });
+
+        elements.isDataset.addEventListener('change', (e) => {
+            state.isDataset = e.target.checked;
+            generateCommand();
+        });
+
+        elements.hfUsername.addEventListener('input', (e) => {
+            state.hfUsername = e.target.value.trim();
+            generateCommand();
+        });
+
+        elements.hfToken.addEventListener('input', (e) => {
+            state.hfToken = e.target.value.trim();
+            generateCommand();
+        });
+
+        elements.toolAria2c.addEventListener('change', () => {
+            state.tool = 'aria2c';
+            elements.aria2cSettings.style.display = 'block';
+            generateCommand();
+        });
+
+        elements.toolWget.addEventListener('change', () => {
+            state.tool = 'wget';
+            elements.aria2cSettings.style.display = 'none';
+            generateCommand();
+        });
+
+        elements.threads.addEventListener('input', (e) => {
+            state.threads = parseInt(e.target.value);
+            elements.threadsValue.textContent = state.threads;
+            generateCommand();
+        });
+
+        elements.concurrent.addEventListener('input', (e) => {
+            state.concurrent = parseInt(e.target.value);
+            elements.concurrentValue.textContent = state.concurrent;
+            generateCommand();
+        });
+
+        // 初始化标签输入
+        setupTagInput(elements.includeInput, 'include');
+        setupTagInput(elements.excludeInput, 'exclude');
+    </script>
+</body>
+</html>
